@@ -18,21 +18,30 @@ const Body = () => {
   const handleSave = async () => {
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch("http://localhost:3000/api/invoices", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          // Include your JWT token if needed for authentication
-          Authorization: `${token}`,
-        },
-        body: JSON.stringify(invoiceDetails),
-      });
+      const invoiceId = localStorage.getItem("invoiceId");
 
-      if (!response.ok) {
-        throw new Error("Error saving invoice details");
+      if (!invoiceId) {
+        console.error("Error: No invoiceId found in localStorage");
+        return;
       }
 
-      console.log("Invoice details saved successfully!");
+      const response = await fetch(
+        `http://localhost:3000/api/invoices/${invoiceId}`,
+        {
+          method: "PUT", // Use the appropriate HTTP method for updating
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `${token}`,
+          },
+          body: JSON.stringify(invoiceDetails),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Error updating invoice details");
+      }
+      alert("Invoice details updated successfully!");
+      console.log("Invoice details updated successfully!");
     } catch (error) {
       console.error("Error:", error.message);
     }
@@ -60,7 +69,13 @@ const Body = () => {
       if (!response.ok) {
         throw new Error("Error saving invoice details");
       }
+      // Parse the response to get the _id
+      const responseBody = await response.json();
+      const { _id } = responseBody;
 
+      // Save the _id in localStorage
+      localStorage.setItem("invoiceId", _id);
+      alert("Invoice details saved successfully!");
       console.log("Invoice details saved successfully!");
     } catch (error) {
       console.error("Error:", error.message);
